@@ -1,19 +1,28 @@
-// Demo program for testing library and board - flip the switch to turn on/off buzzer
+//Connect a switch between pin 1 and ground and pin 2 and ground. 
+//If connection between 1 and ground, then it'll make a white lamp. 
+//If connection between 2 and ground, it'll make a rainbow
+//If no connection, it'll be off
 
 #include <Adafruit_CircuitPlayground.h>
 #include <Wire.h>
 #include <SPI.h>
+#define SWITCHA 1
+#define SWITCHB 2
 
 // we light one pixel at a time, this is our counter
 uint8_t pixeln = 0;
 boolean docolor = true;
+boolean dowhite = false;
+
 
 void setup() {
   //while (!Serial);
   Serial.begin(9600);
   Serial.println("Circuit Playground test!");
-
   CircuitPlayground.begin();
+  pinMode(SWITCHA, INPUT_PULLUP);
+  pinMode(SWITCHB, INPUT_PULLUP);
+
 }
 
 
@@ -54,45 +63,36 @@ void loop() {
      
     }
     
-    if (pixeln == 11) {
+    if (pixeln >= 11) {
      pixeln = 0;
    //   CircuitPlayground.clearPixels();
     }
-  } else {
+  } 
+ if(dowhite) {
       CircuitPlayground.setPixelColor(pixeln++, 255, 255, 255);
-     if (pixeln == 11) {
+     if (pixeln >= 11) {
       pixeln = 0;
      }
   }
   /************* TEST BOTH BUTTONS */
-  if (CircuitPlayground.leftButton()) {
+  if (CircuitPlayground.leftButton() | digitalRead(SWITCHB)==LOW) {
     docolor = true;
+    dowhite = false;
     //CircuitPlayground.clearPixels();
-    pixeln = 0;
+    //pixeln = 0;
   }
-  if (CircuitPlayground.rightButton()) {
+  if (CircuitPlayground.rightButton() | digitalRead(SWITCHA)==LOW) {
     docolor = false;
-    pixeln = 0;
+    dowhite = true;
+   // pixeln = 0;
 
   }
+  if (digitalRead(SWITCHB)==HIGH && digitalRead(SWITCHA)==HIGH) {
+    CircuitPlayground.clearPixels();
+    pixeln = 0;
+    docolor = false;
+    dowhite = false;
+  }
 
-  /************* TEST LIGHT SENSOR */
-  Serial.print("Light sensor: ");
-  Serial.println(CircuitPlayground.lightSensor());
-
-  /************* TEST SOUND SENSOR */
-  Serial.print("Sound sensor: ");
-  Serial.println(CircuitPlayground.soundSensor());
-
-  /************* TEST ACCEL */
-  // Display the results (acceleration is measured in m/s*s)
-  Serial.print("X: "); Serial.print(CircuitPlayground.motionX());
-  Serial.print(" \tY: "); Serial.print(CircuitPlayground.motionY());
-  Serial.print(" \tZ: "); Serial.print(CircuitPlayground.motionZ());
-  Serial.println(" m/s^2");
-
-  /************* TEST THERMISTOR */
-  Serial.print("Temperature ");
-  Serial.print(CircuitPlayground.temperature());
-  Serial.println(" *C");
+ 
 }
